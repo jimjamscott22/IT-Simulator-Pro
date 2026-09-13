@@ -1,0 +1,336 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
+
+:root {
+  /* color-scheme enables native dark mode adaptations */
+  color-scheme: light dark;
+
+  /* Theme Tokens */
+  --bg-color-light: #f3f4f6;
+  --bg-color-dark: #0f111a;
+  --text-color-light: #1f2937;
+  --text-color-dark: #e5e7eb;
+  
+  --accent-color-light: #2563eb;
+  --accent-color-dark: #3b82f6;
+
+  --surface-color-light: rgba(255, 255, 255, 0.7);
+  --surface-color-dark: rgba(30, 41, 59, 0.7);
+  
+  --border-color-light: rgba(0, 0, 0, 0.1);
+  --border-color-dark: rgba(255, 255, 255, 0.1);
+
+  /* Resolved tokens using light-dark() */
+  --bg-color: light-dark(var(--bg-color-light), var(--bg-color-dark));
+  --text-color: light-dark(var(--text-color-light), var(--text-color-dark));
+  --accent-color: light-dark(var(--accent-color-light), var(--accent-color-dark));
+  --surface-color: light-dark(var(--surface-color-light), var(--surface-color-dark));
+  --border-color: light-dark(var(--border-color-light), var(--border-color-dark));
+
+  /* Terminal Colors */
+  --terminal-bg: #09090b;
+  --terminal-text: #10b981;
+  --terminal-error: #ef4444;
+  --terminal-user: #3b82f6;
+
+  /* Typography */
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'Fira Code', monospace;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: var(--surface-color);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Basic Resets */
+h1, h2, h3, h4, h5, h6, p {
+  margin-top: 0;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+button.primary {
+  background-color: var(--accent-color);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+button.primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Layout & Components Styles */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-header {
+  padding: 1rem 2rem;
+  margin: 1rem;
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  letter-spacing: -0.5px;
+}
+
+.app-main {
+  flex: 1;
+  padding: 1rem 2rem;
+  overflow-y: auto;
+}
+
+/* Dashboard */
+.dashboard-title {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: -1px;
+}
+
+.dashboard-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  margin-bottom: 2rem;
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.scenario-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.scenario-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.scenario-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.category-badge, .difficulty-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.difficulty-badge.intermediate {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.difficulty-badge.hard {
+  background: #ef4444;
+  color: #fff;
+}
+
+.scenario-card h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.scenario-card p {
+  font-size: 0.95rem;
+  opacity: 0.8;
+  flex: 1;
+  line-height: 1.5;
+}
+
+.start-btn {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+/* Scenario Player */
+.scenario-player {
+  display: flex;
+  gap: 2rem;
+  height: calc(100vh - 120px);
+}
+
+.scenario-sidebar {
+  width: 350px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.back-btn {
+  background: transparent;
+  color: var(--text-color);
+  opacity: 0.8;
+  padding: 0;
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.back-btn:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.scenario-details {
+  margin: 1.5rem 0;
+  line-height: 1.6;
+}
+
+.complete-btn {
+  margin-top: auto;
+}
+
+.feedback-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.feedback-section h3 {
+  color: #10b981;
+  margin-bottom: 1rem;
+}
+
+.scenario-content {
+  flex: 1;
+  display: flex;
+}
+
+/* Terminal */
+.terminal-container {
+  flex: 1;
+  background: var(--terminal-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.terminal-header {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.dot.red { background: #ff5f56; }
+.dot.yellow { background: #ffbd2e; }
+.dot.green { background: #27c93f; }
+
+.terminal-header .title {
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-body);
+}
+
+.terminal-body {
+  flex: 1;
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  overflow-y: auto;
+  color: var(--terminal-text);
+  line-height: 1.5;
+}
+
+.terminal-line {
+  margin-bottom: 0.25rem;
+  white-space: pre-wrap;
+}
+
+.terminal-line.input {
+  color: #fff;
+}
+
+.terminal-line.system {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+.terminal-input-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.terminal-input-line .prompt {
+  color: #fff;
+}
+
+.terminal-input-line input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  outline: none;
+}

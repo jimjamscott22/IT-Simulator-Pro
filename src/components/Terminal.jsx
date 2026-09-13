@@ -12,6 +12,16 @@ const dhcpMock = {
   ping: 'Pinging 10.0.0.1 with 32 bytes of data:\nRequest timed out.\nRequest timed out.'
 };
 
+const gatewayMock = {
+  ipconfig: 'Windows IP Configuration\n\nEthernet adapter Ethernet:\n   Connection-specific DNS Suffix  . : localdomain\n   IPv4 Address. . . . . . . . . . . : 192.168.1.105\n   Subnet Mask . . . . . . . . . . . : 255.255.255.0\n   Default Gateway . . . . . . . . . : \n   DNS Servers . . . . . . . . . . . : 192.168.1.1',
+  ping: 'Pinging 8.8.8.8 with 32 bytes of data:\nTransmit failed. General failure.\nTransmit failed. General failure.'
+};
+
+const subnetMock = {
+  ipconfig: 'Windows IP Configuration\n\nEthernet adapter Ethernet:\n   Connection-specific DNS Suffix  . : localdomain\n   IPv4 Address. . . . . . . . . . . : 10.0.1.25\n   Subnet Mask . . . . . . . . . . . : 255.255.255.0\n   Default Gateway . . . . . . . . . : 10.0.1.1',
+  ping: 'Pinging 10.0.0.50 with 32 bytes of data:\nReply from 10.0.1.1: Destination host unreachable.\nReply from 10.0.1.1: Destination host unreachable.'
+};
+
 export default function Terminal({ expectedCommands }) {
   const [history, setHistory] = useState([
     { type: 'system', text: 'Terminal ready. Type "help" for available commands.' }
@@ -41,9 +51,15 @@ export default function Terminal({ expectedCommands }) {
       let output = 'Command not recognized.';
       const baseCmd = cmd.split(' ')[0];
       
-      // Determine which mock to use based on expected commands (hacky but works for the prototype)
+      // Determine which mock to use based on expected commands
       const useDhcpMock = expectedCommands.includes('ping 10.0.0.1');
-      const mockSrc = useDhcpMock ? dhcpMock : mockFileSystem;
+      const useGatewayMock = expectedCommands.includes('ping 8.8.8.8');
+      const useSubnetMock = expectedCommands.includes('ping 10.0.0.50');
+      
+      let mockSrc = mockFileSystem;
+      if (useDhcpMock) mockSrc = dhcpMock;
+      if (useGatewayMock) mockSrc = gatewayMock;
+      if (useSubnetMock) mockSrc = subnetMock;
 
       if (mockSrc[baseCmd]) {
         output = mockSrc[baseCmd];

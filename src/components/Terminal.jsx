@@ -1,104 +1,126 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { commonCommands, knownCommands, listCommands, normalizeCommand, resolveCommand } from '../lib/commands';
 
-const mockFileSystem = {
-  ping: 'Pinging portal.local [10.0.0.5] with 32 bytes of data:\nReply from 10.0.0.5: bytes=32 time=14ms TTL=117\nReply from 10.0.0.5: bytes=32 time=15ms TTL=117\n\nPing statistics for 10.0.0.5:\n    Packets: Sent = 2, Received = 2, Lost = 0 (0% loss)',
-  nslookup: "Server:  UnKnown\nAddress:  8.8.8.8\n\n*** UnKnown can't find portal.local: Non-existent domain",
-  ipconfig: 'Windows IP Configuration\n\nEthernet adapter Ethernet:\n   Connection-specific DNS Suffix  . : localdomain\n   IPv4 Address. . . . . . . . . . . : 192.168.1.100\n   Subnet Mask . . . . . . . . . . . : 255.255.255.0\n   Default Gateway . . . . . . . . . : 192.168.1.1\n   DNS Servers . . . . . . . . . . . : 8.8.8.8\n                                       8.8.4.4',
-  help: 'Available commands: ping, nslookup, ipconfig, help, clear'
-};
+const PROMPT = 'C:\\Users\\Admin>';
+const WELCOME = { type: 'system', text: 'Terminal ready. Type "help" for available commands. Use ↑/↓ for history and Tab to complete.' };
 
-const dhcpMock = {
-  ipconfig: 'Windows IP Configuration\n\nEthernet adapter Ethernet:\n   Connection-specific DNS Suffix  . : \n   Autoconfiguration IPv4 Address. . : 169.254.88.22\n   Subnet Mask . . . . . . . . . . . : 255.255.0.0\n   Default Gateway . . . . . . . . . : ',
-  ping: 'Pinging 10.0.0.1 with 32 bytes of data:\nRequest timed out.\nRequest timed out.'
-};
-
-const gatewayMock = {
-  ipconfig: 'Windows IP Configuration\n\nEthernet adapter Ethernet:\n   Connection-specific DNS Suffix  . : localdomain\n   IPv4 Address. . . . . . . . . . . : 192.168.1.105\n   Subnet Mask . . . . . . . . . . . : 255.255.255.0\n   Default Gateway . . . . . . . . . : \n   DNS Servers . . . . . . . . . . . : 192.168.1.1',
-  ping: 'Pinging 8.8.8.8 with 32 bytes of data:\nTransmit failed. General failure.\nTransmit failed. General failure.'
-};
-
-const subnetMock = {
-  ipconfig: 'Windows IP Configuration\n\nEthernet adapter Ethernet:\n   Connection-specific DNS Suffix  . : localdomain\n   IPv4 Address. . . . . . . . . . . : 10.0.1.25\n   Subnet Mask . . . . . . . . . . . : 255.255.255.0\n   Default Gateway . . . . . . . . . : 10.0.1.1',
-  ping: 'Pinging 10.0.0.50 with 32 bytes of data:\nReply from 10.0.1.1: Destination host unreachable.\nReply from 10.0.1.1: Destination host unreachable.'
-};
-
-export default function Terminal({ expectedCommands }) {
-  const [history, setHistory] = useState([
-    { type: 'system', text: 'Terminal ready. Type "help" for available commands.' }
-  ]);
+export default function Terminal({ commands = {}, onCommand }) {
+  const [history, setHistory] = useState([WELCOME]);
   const [input, setInput] = useState('');
-  const bottomRef = useRef(null);
+  const [past, setPast] = useState([]);
+  const [pastIndex, setPastIndex] = useState(-1);
+  const bodyRef = useRef(null);
+  const inputRef = useRef(null);
 
+  const merged = useMemo(() => ({ ...commonCommands, ...commands }), [commands]);
+  const available = useMemo(() => listCommands(merged), [merged]);
+
+  // Keep the newest output in view without scrolling the rest of the page.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const body = bodyRef.current;
+    if (body) body.scrollTop = body.scrollHeight;
   }, [history]);
 
-  const handleCommand = (e) => {
+  const run = (raw) => {
+    const cmd = normalizeCommand(raw);
+    const base = cmd.split(' ')[0];
+    const echo = { type: 'input', text: `${PROMPT} ${raw.trim()}` };
+
+    if (cmd === 'clear' || cmd === 'cls') {
+      setHistory([]);
+      return;
+    }
+
+    let line;
+    if (cmd === 'help') {
+      line = { type: 'output', text: `Available commands: ${[...available, 'help', 'cls'].join(', ')}` };
+    } else {
+      const result = resolveCommand(raw, merged);
+      if (result !== null) {
+        line = { type: 'output', text: result };
+      } else if (knownCommands.has(base)) {
+        line = { type: 'system', text: `"${base}" is a real command, but this usage isn't simulated in this scenario. Type "help" to see what is.` };
+      } else {
+        line = { type: 'error', text: `'${raw.trim().split(/\s+/)[0]}' is not recognized as an internal or external command,\noperable program or batch file.` };
+      }
+    }
+
+    setHistory((h) => [...h, echo, line]);
+    onCommand?.(cmd);
+  };
+
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      const cmd = input.trim().toLowerCase();
+      const raw = input;
       setInput('');
-      
-      if (!cmd) return;
-
-      const newHistory = [...history, { type: 'input', text: `C:\\Users\\Admin> ${cmd}` }];
-
-      if (cmd === 'clear') {
-        setHistory([]);
-        return;
+      setPastIndex(-1);
+      if (!raw.trim()) return;
+      setPast((p) => [raw.trim(), ...p.filter((c) => c !== raw.trim())].slice(0, 50));
+      run(raw);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!past.length) return;
+      const next = Math.min(pastIndex + 1, past.length - 1);
+      setPastIndex(next);
+      setInput(past[next]);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = pastIndex - 1;
+      setPastIndex(Math.max(next, -1));
+      setInput(next >= 0 ? past[next] : '');
+    } else if (e.key === 'Tab') {
+      // Complete the first word only; keep focus in the terminal.
+      if (input.includes(' ')) return;
+      e.preventDefault();
+      const prefix = input.toLowerCase();
+      const matches = [...available, 'help', 'cls'].filter((c) => c.startsWith(prefix));
+      if (matches.length === 1) {
+        setInput(`${matches[0]} `);
+      } else if (matches.length > 1 && prefix) {
+        setHistory((h) => [...h, { type: 'system', text: matches.join('  ') }]);
       }
-
-      // Check for partial matches
-      let output = 'Command not recognized.';
-      const baseCmd = cmd.split(' ')[0];
-      
-      // Determine which mock to use based on expected commands
-      const useDhcpMock = expectedCommands.includes('ping 10.0.0.1');
-      const useGatewayMock = expectedCommands.includes('ping 8.8.8.8');
-      const useSubnetMock = expectedCommands.includes('ping 10.0.0.50');
-      
-      let mockSrc = mockFileSystem;
-      if (useDhcpMock) mockSrc = dhcpMock;
-      if (useGatewayMock) mockSrc = gatewayMock;
-      if (useSubnetMock) mockSrc = subnetMock;
-
-      if (mockSrc[baseCmd]) {
-        output = mockSrc[baseCmd];
-      }
-
-      newHistory.push({ type: 'output', text: output });
-      setHistory(newHistory);
     }
   };
 
+  // Focus the input when clicking the terminal, unless the user is selecting text to copy.
+  const handleBodyClick = () => {
+    if (window.getSelection()?.toString()) return;
+    inputRef.current?.focus();
+  };
+
   return (
-    <div className="terminal-container glass-panel">
-      <div className="terminal-header">
+    <section className="terminal-container" aria-label="Simulated command prompt">
+      <div className="terminal-header" aria-hidden="true">
         <span className="dot red"></span>
         <span className="dot yellow"></span>
         <span className="dot green"></span>
         <span className="title">Command Prompt</span>
       </div>
-      <div className="terminal-body" onClick={() => document.getElementById('term-input').focus()}>
-        {history.map((line, i) => (
-          <div key={i} className={`terminal-line ${line.type}`}>
-            {line.text}
-          </div>
-        ))}
+      <div className="terminal-body" ref={bodyRef} onClick={handleBodyClick}>
+        <div role="log" aria-live="polite" aria-label="Terminal output">
+          {history.map((line, i) => (
+            <div key={i} className={`terminal-line ${line.type}`}>
+              {line.text}
+            </div>
+          ))}
+        </div>
         <div className="terminal-input-line">
-          <span className="prompt">C:\Users\Admin&gt;</span>
-          <input 
+          <span className="prompt" aria-hidden="true">{PROMPT}</span>
+          <input
             id="term-input"
-            type="text" 
+            ref={inputRef}
+            type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleCommand}
+            onKeyDown={handleKeyDown}
+            aria-label="Terminal command"
             autoFocus
             autoComplete="off"
+            autoCapitalize="off"
             spellCheck="false"
           />
         </div>
-        <div ref={bottomRef} />
       </div>
-    </div>
+    </section>
   );
 }

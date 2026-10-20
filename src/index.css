@@ -1,96 +1,129 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
-
 :root {
-  /* color-scheme enables native dark mode adaptations */
+  /* color-scheme enables native light/dark adaptations; light-dark() picks per scheme */
   color-scheme: light dark;
 
-  /* Theme Tokens */
-  --bg-color-light: #f3f4f6;
-  --bg-color-dark: #0f111a;
-  --text-color-light: #1f2937;
-  --text-color-dark: #e5e7eb;
-  
-  --accent-color-light: #2563eb;
-  --accent-color-dark: #3b82f6;
+  --bg-color: light-dark(#f3f4f6, #0f111a);
+  --text-color: light-dark(#1f2937, #e5e7eb);
+  --text-muted: light-dark(#4b5563, #9ca3af);
+  --accent-color: light-dark(#1d4ed8, #60a5fa);
+  --button-bg: #2563eb; /* 5.2:1 with white text in both schemes */
+  --button-bg-hover: #1d4ed8;
+  --surface-color: light-dark(rgba(255, 255, 255, 0.75), rgba(30, 41, 59, 0.7));
+  --surface-strong: light-dark(#ffffff, #1e293b);
+  --border-color: light-dark(rgba(0, 0, 0, 0.12), rgba(255, 255, 255, 0.12));
+  --chip-bg: light-dark(rgba(37, 99, 235, 0.08), rgba(96, 165, 250, 0.12));
+  --success: light-dark(#047857, #34d399);
+  --success-bg: light-dark(rgba(4, 120, 87, 0.08), rgba(16, 185, 129, 0.1));
+  --danger: light-dark(#b91c1c, #f87171);
+  --focus-ring: light-dark(#1d4ed8, #93c5fd);
 
-  --surface-color-light: rgba(255, 255, 255, 0.7);
-  --surface-color-dark: rgba(30, 41, 59, 0.7);
-  
-  --border-color-light: rgba(0, 0, 0, 0.1);
-  --border-color-dark: rgba(255, 255, 255, 0.1);
-
-  /* Resolved tokens using light-dark() */
-  --bg-color: light-dark(var(--bg-color-light), var(--bg-color-dark));
-  --text-color: light-dark(var(--text-color-light), var(--text-color-dark));
-  --accent-color: light-dark(var(--accent-color-light), var(--accent-color-dark));
-  --surface-color: light-dark(var(--surface-color-light), var(--surface-color-dark));
-  --border-color: light-dark(var(--border-color-light), var(--border-color-dark));
-
-  /* Terminal Colors */
+  /* Terminal is always dark, like a real console */
   --terminal-bg: #09090b;
-  --terminal-text: #10b981;
-  --terminal-error: #ef4444;
-  --terminal-user: #3b82f6;
+  --terminal-text: #34d399;
+  --terminal-error: #f87171;
+  --terminal-muted: rgba(255, 255, 255, 0.6);
 
-  /* Typography */
-  --font-body: 'Inter', sans-serif;
-  --font-mono: 'Fira Code', monospace;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Fira Code', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --header-height: 4.5rem;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  padding: 0;
   font-family: var(--font-body);
+  font-size-adjust: from-font; /* keep fallback fonts visually stable while Inter loads */
   background-color: var(--bg-color);
   color: var(--text-color);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  line-height: 1.5;
 }
 
-#root {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+h1, h2, h3, h4, h5, h6, p {
+  margin-top: 0;
 }
 
-/* Glassmorphism Utilities */
+/* ---------- Utilities ---------- */
 .glass-panel {
   background: var(--surface-color);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
 }
 
-/* Basic Resets */
-h1, h2, h3, h4, h5, h6, p {
-  margin-top: 0;
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
 }
 
+.skip-link:focus {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 10;
+  padding: 0.5rem 1rem;
+  background: var(--surface-strong);
+  color: var(--text-color);
+  border-radius: 8px;
+}
+
+:where(a, button, input, select, textarea, summary):focus-visible,
+main:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+main:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ---------- Controls ---------- */
 button {
-  font-family: var(--font-body);
+  font: inherit;
   cursor: pointer;
-  transition: all 0.2s ease;
   border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
 }
 
 button.primary {
-  background-color: var(--accent-color);
-  color: white;
-  padding: 12px 24px;
+  background-color: var(--button-bg);
+  color: #fff;
+  padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 1rem;
 }
 
 button.primary:hover:not(:disabled) {
+  background-color: var(--button-bg-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--accent-color);
+  border: 1px solid currentColor;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+button.secondary:hover {
+  background: var(--chip-bg);
 }
 
 button:disabled {
@@ -98,16 +131,40 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Layout & Components Styles */
+input[type='search'],
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  background: var(--surface-strong);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Layout ---------- */
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-header {
-  padding: 1rem 2rem;
   margin: 1rem;
+  padding: 0 2rem;
+  min-height: calc(var(--header-height) - 1rem);
   display: flex;
   align-items: center;
   border-radius: 12px;
@@ -118,75 +175,149 @@ button:disabled {
   font-weight: 700;
   color: var(--accent-color);
   letter-spacing: -0.5px;
+  text-decoration: none;
 }
 
 .app-main {
   flex: 1;
-  padding: 1rem 2rem;
-  overflow-y: auto;
+  padding: 0 2rem 2rem;
 }
 
-/* Dashboard */
+/* ---------- Dashboard ---------- */
+.dashboard-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-block: 1rem 1.5rem;
+}
+
 .dashboard-title {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
+  margin-bottom: 0.25rem;
   letter-spacing: -1px;
 }
 
 .dashboard-subtitle {
   font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+.progress-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.progress-count {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  line-height: 1;
+}
+
+.progress-count span {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}
+
+.progress-caption {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.chip-group,
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: var(--chip-bg);
   color: var(--text-color);
-  opacity: 0.8;
-  margin-bottom: 2rem;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-block-size: 32px;
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--button-bg);
+  color: #fff;
+}
+
+.chip:hover:not([aria-pressed='true']) {
+  border-color: var(--accent-color);
+}
+
+.empty-state {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 3rem 0;
 }
 
 .scenario-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 1.5rem;
 }
 
 .scenario-card {
+  position: relative;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.scenario-card:hover {
+.scenario-card:hover,
+.scenario-card:focus-within {
   transform: translateY(-4px);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
 }
 
 .scenario-card-header {
   display: flex;
   justify-content: space-between;
+  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
-.category-badge, .difficulty-badge {
+.category-badge,
+.difficulty-badge {
   font-size: 0.8rem;
   font-weight: 600;
   padding: 4px 10px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
 }
 
-.difficulty-badge.beginner {
-  background: #10b981;
-  color: #fff;
+.category-badge {
+  background: var(--chip-bg);
+  color: var(--accent-color);
 }
 
-.difficulty-badge.intermediate {
-  background: #f59e0b;
-  color: #fff;
-}
-
-.difficulty-badge.advanced, .difficulty-badge.hard {
-  background: #ef4444;
-  color: #fff;
-}
+/* All difficulty colors meet 4.5:1 with white text */
+.difficulty-badge { color: #fff; }
+.difficulty-badge.beginner { background: #047857; }
+.difficulty-badge.intermediate { background: #b45309; }
+.difficulty-badge.advanced { background: #b91c1c; }
+.difficulty-badge.expert { background: #6d28d9; }
 
 .scenario-card h2 {
   margin-bottom: 0.5rem;
@@ -195,25 +326,41 @@ button:disabled {
 
 .scenario-card p {
   font-size: 0.95rem;
-  opacity: 0.8;
+  color: var(--text-muted);
   flex: 1;
-  line-height: 1.5;
+}
+
+.scenario-card .completed-badge {
+  flex: 0;
+  margin: 0.5rem 0 0;
+  color: var(--success);
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .start-btn {
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
   width: 100%;
 }
 
-/* Scenario Player */
+/* Stretch the button's hit area over the whole card */
+.start-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+}
+
+/* ---------- Scenario Player ---------- */
 .scenario-player {
-  display: flex;
-  gap: 2rem;
-  height: calc(100vh - 120px);
+  display: grid;
+  grid-template-columns: minmax(300px, 400px) 1fr;
+  gap: 1.5rem;
+  height: calc(100dvh - var(--header-height) - 3rem);
+  min-height: 520px;
 }
 
 .scenario-sidebar {
-  width: 350px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -221,53 +368,145 @@ button:disabled {
 }
 
 .back-btn {
+  align-self: flex-start;
   background: transparent;
-  color: var(--text-color);
-  opacity: 0.8;
-  padding: 0;
-  text-align: left;
-  margin-bottom: 1.5rem;
+  color: var(--text-muted);
+  padding: 0.25rem 0;
+  margin-bottom: 1.25rem;
 }
 
 .back-btn:hover {
-  opacity: 1;
+  color: var(--text-color);
   text-decoration: underline;
 }
 
+.scenario-title {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.previous-best {
+  color: var(--success);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .scenario-details {
-  margin: 1.5rem 0;
+  margin: 1rem 0;
   line-height: 1.6;
 }
 
-.complete-btn {
+.checklist-progress {
+  margin-bottom: 1.25rem;
+}
+
+.checklist-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.checklist-progress progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--success);
+}
+
+.diagnosis-form {
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.diagnosis-form label {
+  font-weight: 600;
+}
+
+.diagnosis-form .hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.complete-btn {
+  margin-top: 0.5rem;
 }
 
 .feedback-section {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.2);
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: var(--success-bg);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+.feedback-section h2 {
+  color: var(--success);
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .feedback-section h3 {
-  color: #10b981;
-  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  margin: 1rem 0 0.35rem;
+}
+
+.feedback-section p {
+  margin-bottom: 0;
+}
+
+.your-diagnosis {
+  white-space: pre-wrap;
+  font-style: italic;
+}
+
+.feedback-section .secondary {
+  margin-top: 1.25rem;
+}
+
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.checklist li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.checklist li.done > span:first-child { color: var(--success); font-weight: 700; }
+.checklist li.missed > span:first-child { color: var(--danger); font-weight: 700; }
+
+.checklist code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  word-break: break-all;
 }
 
 .scenario-content {
-  flex: 1;
   display: flex;
+  min-width: 0;
+  min-height: 0;
 }
 
-/* Terminal */
+/* ---------- Terminal ---------- */
 .terminal-container {
   flex: 1;
+  min-width: 0;
   background: var(--terminal-bg);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  color-scheme: dark;
 }
 
 .terminal-header {
@@ -289,11 +528,9 @@ button:disabled {
 .dot.green { background: #27c93f; }
 
 .terminal-header .title {
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline: auto;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-family: var(--font-body);
+  color: var(--terminal-muted);
 }
 
 .terminal-body {
@@ -304,19 +541,19 @@ button:disabled {
   overflow-y: auto;
   color: var(--terminal-text);
   line-height: 1.5;
+  cursor: text;
 }
 
 .terminal-line {
   margin-bottom: 0.25rem;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
-.terminal-line.input {
-  color: #fff;
-}
-
+.terminal-line.input { color: #fff; }
+.terminal-line.error { color: var(--terminal-error); }
 .terminal-line.system {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--terminal-muted);
   font-style: italic;
 }
 
@@ -328,14 +565,54 @@ button:disabled {
 
 .terminal-input-line .prompt {
   color: #fff;
+  white-space: nowrap;
 }
 
 .terminal-input-line input {
   flex: 1;
+  min-width: 0;
   background: transparent;
   border: none;
   color: #fff;
   font-family: var(--font-mono);
   font-size: 0.9rem;
+  caret-color: var(--terminal-text);
+}
+
+/* The terminal input is visually caret-driven; show focus on the whole console instead */
+.terminal-input-line input:focus-visible {
   outline: none;
+}
+
+.terminal-container:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--terminal-text) 60%, transparent);
+  outline-offset: 2px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .app-header { margin: 0.75rem; padding: 0 1.25rem; }
+  .app-main { padding: 0 0.75rem 1.5rem; }
+
+  .scenario-player {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
+  }
+
+  .scenario-sidebar { overflow: visible; }
+
+  .scenario-content {
+    order: -1; /* terminal first on small screens, sidebar below */
+    height: 60dvh;
+    min-height: 360px;
+  }
+
+  .terminal-body { font-size: 0.8rem; }
+  .filters { flex-direction: column; }
+  .filter-controls > * { flex: 1; }
+}
+
+@media (pointer: coarse) {
+  .chip, .back-btn { min-block-size: 44px; }
 }
